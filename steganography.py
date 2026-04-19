@@ -1,35 +1,5 @@
 """
-steganography.py
-================
-Bit-level LSB steganography with configurable period, start offset, and cycling mode.
- 
-Terminology
------------
-P  = carrier (plaintext) file bytes
-M  = message (payload) file bytes
-S  = start_bit  – how many bits to skip at the beginning of P before writing
-L  = period     – every L-th bit of P (after the skip) is overwritten with the next
-                  bit of M.  In 'cycling' mode L cycles through a list of values.
-C  = mode       – 'fixed' | 'cycling'
- 
-Embedding
----------
-For each payload bit b_i (i = 0, 1, 2, …):
-  carrier_bit_position = S + L_i * (i+1)   # 1-indexed steps; see below
-Actually the simpler interpretation used here:
-  position of the i-th replacement bit = S + i * L   (fixed)
-  position of the i-th replacement bit = S + sum(L_0..L_{i-1})  (cycling)
- 
-The bit at that position in P is replaced by b_i.
- 
-Extraction
-----------
-The process is deterministic given S, L, mode, and the number of payload bits.
-We just read the bits from the same positions.
- 
-Security note (required by assignment)
----------------------------------------
-If an adversary knows only L (and not S or M), they can:
+If only knows only L (and not S or M), they can:
   - Extract every L-th bit starting from position 0.
   - This yields a candidate bitstream, but without knowing S they get the
     wrong starting offset.  With enough statistical analysis (chi-square on
@@ -45,14 +15,12 @@ from typing import List
  
  
 def _get_bit(data: bytes, pos: int) -> int:
-    """Return the bit at position `pos` (0-indexed, MSB first within each byte)."""
-    byte_idx = pos >> 3          # pos // 8
-    bit_idx  = 7 - (pos & 7)    # MSB of byte is bit 7
+    byte_idx = pos >> 3          
+    bit_idx  = 7 - (pos & 7)    
     return (data[byte_idx] >> bit_idx) & 1
  
  
 def _set_bit(data: bytearray, pos: int, value: int) -> None:
-    """Set the bit at position `pos` to `value` (0 or 1) in-place."""
     byte_idx = pos >> 3
     bit_idx  = 7 - (pos & 7)
     if value:
@@ -62,16 +30,9 @@ def _set_bit(data: bytearray, pos: int, value: int) -> None:
  
  
 def _bit_positions(start_bit: int, period_list: List[int], mode: str, count: int) -> List[int]:
-    """
-    Generate `count` carrier bit positions for embedding/extraction.
- 
-    Fixed mode  : positions are  start_bit + 1*L, start_bit + 2*L, …
-    Cycling mode: period cycles through period_list;
-                  positions advance by the current period each step.
-    """
     positions = []
     if mode == 'cycling':
-        period_cycle = period_list  # will cycle
+        period_cycle = period_list  
         pos = start_bit
         for i in range(count):
             p = period_cycle[i % len(period_cycle)]
@@ -84,14 +45,8 @@ def _bit_positions(start_bit: int, period_list: List[int], mode: str, count: int
     return positions
  
  
-def embed_message(carrier: bytes, message: bytes,
-                  start_bit: int, period_list: List[int], mode: str) -> bytes:
-    """
-    Embed `message` into `carrier` using the specified parameters.
- 
-    Returns the modified carrier as bytes.
-    Raises ValueError if the message is too large to fit.
-    """
+def embed_message(carrier: bytes, message: bytes, start_bit: int, period_list: List[int], mode: str) -> bytes:
+
     if not carrier:
         raise ValueError("Carrier file is empty.")
     if not message:
@@ -120,12 +75,6 @@ def embed_message(carrier: bytes, message: bytes,
  
 def extract_message(carrier: bytes, start_bit: int, period_list: List[int],
                     mode: str, message_len_bits: int) -> bytes:
-    """
-    Extract the hidden message from `carrier`.
- 
-    `message_len_bits` must match the value used during embedding.
-    Returns the recovered message as bytes.
-    """
     positions = _bit_positions(start_bit, period_list, mode, message_len_bits)
     result = bytearray((message_len_bits + 7) // 8)
  

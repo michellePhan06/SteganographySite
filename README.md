@@ -24,7 +24,7 @@ stegapp/
 ```bash
 pip install -r requirements.txt
 python3 main.py
-# → http://localhost:5000
+# → http://127.0.0.1:8000
 ```
 
 ## Steganography Algorithm
@@ -127,3 +127,6 @@ eb deploy
 - Use Azure Blob Storage / AWS S3 for `posts/` folder (persistent storage).
 - Add HTTPS (Azure provides it automatically; AWS needs ACM certificate).
 - Set `MAX_CONTENT_LENGTH` appropriately for your hosting tier.
+
+### Credit
+ - Ai was used in making the README.md

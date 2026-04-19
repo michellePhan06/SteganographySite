@@ -8,11 +8,11 @@
 <form method="POST" action="/submit" enctype="multipart/form-data">
   <p>Title: <input name="title" placeholder="Post title" required></p>
   <p>Description: <textarea name="description" placeholder="Optional description"></textarea></p>
-  <p>Carrier file (P - will be posted publicly): <input type="file" name="carrier" required></p>
-  <p>Message file (M - will be hidden inside carrier): <input type="file" name="message" required></p>
-  <p>Start bit (S - bits to skip at head of carrier): <input name="start" value="0" type="number" min="0"></p>
-  <p>Period(s) (L - e.g. 8 for fixed, or 8,16,24 for cycling): <input name="periods" value="8"></p>
-  <p>Mode (C):
+  <p>P - Carrier file: <input type="file" name="carrier" required></p>
+  <p>M - Message file: <input type="file" name="message" required></p>
+  <p>S - Start bit (default:0): <input name="start" value="0" type="number" min="0"></p>
+  <p>L - Period (default:8): <input name="periods" value="8"></p>
+  <p>C - Mode:
     <select name="mode">
       <option value="fixed">Fixed</option>
       <option value="cycling">Cycling</option>
