@@ -23,7 +23,7 @@ stegapp/
 
 ```bash
 pip install -r requirements.txt
-python3 app.py
+python3 main.py
 # → http://localhost:5000
 ```
 
