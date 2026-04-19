@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}StegoVault - Gallery{% endblock %}
+{% block content %}
+<h1>Steganography Site</h1>
+<h2>Public Gallery</h2>
+{% if user %}
+  <p><a href="{{ url_for('submit') }}">+ Submit New File</a></p>
+{% else %}
+  <p><a href="{{ url_for('register') }}">Register</a> or <a href="{{ url_for('login') }}">Login</a> to submit files.</p>
+{% endif %}
+ 
+{% if posts %}
+  <ul>
+    {% for post in posts %}
+    <li>
+      <a href="{{ url_for('view_post', post_id=post.id) }}">{{ post.title }}</a>
+      — by {{ post.author.username }}
+      ({{ post.ext or 'file' }})
+      — {{ post.created.strftime('%b %d, %Y') }}
+    </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No posts yet.</p>
+{% endif %}
+{% endblock %}

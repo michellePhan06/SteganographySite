@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}StegoVault{% endblock %}</title>
+</head>
+<body>
+<p>
+  <a href="{{ url_for('index') }}">Gallery</a> |
+  {% if user %}
+    <a href="{{ url_for('submit') }}">Submit</a> |
+    <a href="{{ url_for('logout') }}">Logout ({{ user.username }})</a>
+  {% else %}
+    <a href="{{ url_for('login') }}">Login</a> |
+    <a href="{{ url_for('register') }}">Register</a>
+  {% endif %}
+</p>
+<hr>
+ 
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for msg in messages %}
+      <p><b>{{ msg }}</b></p>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+ 
+{% block content %}{% endblock %}
+</body>
+</html>

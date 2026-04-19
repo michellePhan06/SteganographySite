@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} - StegoVault{% endblock %}
+{% block content %}
+<h1>Steganography Site</h1>
+<h2>{{ post.title }}</h2>
+<p>By {{ post.author.username }} | Format: {{ post.ext or 'file' }} | {{ post.created.strftime('%B %d, %Y') }}</p>
+ 
+{% if post.is_image %}
+  <img src="{{ url_for('serve_post', filename=post.filename) }}" width="600" alt="{{ post.title }}"><br>
+{% endif %}
+ 
+<p><a href="{{ url_for('serve_post', filename=post.filename) }}" download>Download carrier file</a></p>
+ 
+<h3>Steganography Parameters</h3>
+<ul>
+  <li>Start bit (S): {{ params.get('start', '—') }}</li>
+  <li>Period(s) (L): {{ params.get('periods', [])|join(', ') }}</li>
+  <li>Mode (C): {{ params.get('mode', '—') }}</li>
+  <li>Payload size: {{ params.get('msg_bits', '—') }} bits</li>
+</ul>
+ 
+{% if user %}
+  <button onclick="doExtract()">Extract Hidden Message</button>
+  <pre id="out"></pre>
+  {% if user.id == post.user_id %}
+    <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}">
+      <button type="submit" onclick="return confirm('Delete this post?')">Delete Post</button>
+    </form>
+  {% endif %}
+{% else %}
+  <p><a href="{{ url_for('login') }}">Login</a> to extract the hidden message.</p>
+{% endif %}
+ 
+<script>
+async function doExtract() {
+    const r = await fetch('{{ url_for("do_extract", post_id=post.id) }}', {method: 'POST'});
+    const d = await r.json();
+    document.getElementById('out').textContent = d.ok ? d.content : 'Error: ' + d.error;
+}
+</script>
+{% endblock %}
