@@ -5,19 +5,46 @@
 <h2>Submit File</h2>
 <p>Upload a carrier file and a secret message to hide inside it using steganography.</p>
  
-<form method="POST" action="/submit" enctype="multipart/form-data">
+<form method="POST" action="/submit" enctype="multipart/form-data" id="submit-form">
   <p>Title: <input name="title" placeholder="Post title" required></p>
   <p>Description: <textarea name="description" placeholder="Optional description"></textarea></p>
-  <p>P - Carrier file: <input type="file" name="carrier" required></p>
-  <p>M - Message file: <input type="file" name="message" required></p>
-  <p>S - Start bit (default:0): <input name="start" value="0" type="number" min="0"></p>
-  <p>L - Period (default:8): <input name="periods" value="8"></p>
-  <p>C - Mode:
-    <select name="mode">
+  <p>Carrier file (P - will be posted publicly): <input type="file" name="carrier" required></p>
+  <p>Message file (M - will be hidden inside carrier): <input type="file" name="message" required></p>
+  <p>Start bit (S - bits to skip at head of carrier): <input name="start" value="0" type="number" min="0"></p>
+  <p>
+    Period(s) (L - single number for fixed e.g. 8, or comma-separated for cycling e.g. 8,16,24):
+    <input name="periods" id="periods" value="8" oninput="validatePeriods()">
+    <br><span id="periods-error" style="color:red;display:none;">
+      Multiple periods entered — you must set Mode to Cycling.
+    </span>
+  </p>
+  <p>Mode (C):
+    <select name="mode" id="mode" onchange="validatePeriods()">
       <option value="fixed">Fixed</option>
       <option value="cycling">Cycling</option>
     </select>
   </p>
-  <button type="submit">Embed and Post</button>
+  <button type="submit" id="submit-btn">Embed and Post</button>
 </form>
+ 
+<script>
+function validatePeriods() {
+  const periodsVal = document.getElementById('periods').value;
+  const mode = document.getElementById('mode').value;
+  const errorEl = document.getElementById('periods-error');
+  const submitBtn = document.getElementById('submit-btn');
+ 
+  // Check if user entered multiple comma-separated values
+  const parts = periodsVal.split(',').map(s => s.trim()).filter(s => s !== '');
+  const hasMultiple = parts.length > 1;
+ 
+  if (hasMultiple && mode === 'fixed') {
+    errorEl.style.display = 'inline';
+    submitBtn.disabled = true;
+  } else {
+    errorEl.style.display = 'none';
+    submitBtn.disabled = false;
+  }
+}
+</script>
 {% endblock %}

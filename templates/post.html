@@ -4,24 +4,25 @@
 <h1>Steganography Site</h1>
 <h2>{{ post.title }}</h2>
 <p>By {{ post.author.username }} | Format: {{ post.ext or 'file' }} | {{ post.created.strftime('%B %d, %Y') }}</p>
- 
+
 {% if post.is_image %}
   <img src="{{ url_for('serve_post', filename=post.filename) }}" width="600" alt="{{ post.title }}"><br>
 {% endif %}
- 
+
 <p><a href="{{ url_for('serve_post', filename=post.filename) }}" download>Download carrier file</a></p>
- 
+
 <h3>Steganography Parameters</h3>
 <ul>
   <li>Start bit (S): {{ params.get('start', '—') }}</li>
   <li>Period(s) (L): {{ params.get('periods', [])|join(', ') }}</li>
   <li>Mode (C): {{ params.get('mode', '—') }}</li>
   <li>Payload size: {{ params.get('msg_bits', '—') }} bits</li>
+  <li>Hidden file type: {{ params.get('msg_ext', 'unknown') }}</li>
 </ul>
- 
+
 {% if user %}
   <button onclick="doExtract()">Extract Hidden Message</button>
-  <pre id="out"></pre>
+  <div id="extract-output"></div>
   {% if user.id == post.user_id %}
     <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}">
       <button type="submit" onclick="return confirm('Delete this post?')">Delete Post</button>
@@ -30,12 +31,43 @@
 {% else %}
   <p><a href="{{ url_for('login') }}">Login</a> to extract the hidden message.</p>
 {% endif %}
- 
+
 <script>
 async function doExtract() {
-    const r = await fetch('{{ url_for("do_extract", post_id=post.id) }}', {method: 'POST'});
-    const d = await r.json();
-    document.getElementById('out').textContent = d.ok ? d.content : 'Error: ' + d.error;
+    const btn = document.querySelector('button[onclick="doExtract()"]');
+    btn.disabled = true;
+    btn.textContent = 'Extracting...';
+
+    const out = document.getElementById('extract-output');
+    out.innerHTML = '';
+
+    try {
+        const r = await fetch('{{ url_for("do_extract", post_id=post.id) }}', { method: 'POST' });
+        const d = await r.json();
+
+        if (!d.ok) {
+            out.innerHTML = '<p style="color:red">Error: ' + d.error + '</p>';
+            return;
+        }
+
+        if (d.type === 'image') {
+            // Display the extracted image inline and offer a download link
+            const src = 'data:' + d.mime + ';base64,' + d.b64;
+            out.innerHTML =
+                '<p>Extracted image:</p>' +
+                '<img src="' + src + '" style="max-width:600px;display:block;margin-bottom:0.5rem" alt="Extracted hidden image">' +
+                '<a href="' + src + '" download="extracted' + d.ext + '">Download extracted image</a>';
+        } else if (d.type === 'text') {
+            out.innerHTML = '<p>Extracted message:</p><pre>' + d.content + '</pre>';
+        } else {
+            out.innerHTML = '<p>Binary payload (hex):</p><pre>' + d.content + '</pre>';
+        }
+    } catch (e) {
+        out.innerHTML = '<p style="color:red">Network error: ' + e + '</p>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Extract Hidden Message';
+    }
 }
 </script>
 {% endblock %}
